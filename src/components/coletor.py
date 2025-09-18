@@ -1,156 +1,154 @@
 import csv
 import re
 import requests
+import time
+import logging
 
-from urllib.request import urlopen 
 from bs4 import BeautifulSoup
+from typing import List, Dict, Optional
+from urllib.request import urlopen
+from urllib.parse import urljoin 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('coletor.log'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)    
 
 
-def raspagem_quotes_toscrape(url: str):
+def raspagem_quotes_toscrape(url: str) -> list[dict]:
     
-    html = urlopen(url=url) 
-    
-    
-    soup = BeautifulSoup(html, 'html.parser') 
+    headers = {'User-Agent': 'Mozilla/5.0 (compatible; ScraperBot/1.0)'}
+    page_url = '/'
+    resultados: list[dict] = []
 
-    page_url = '/'    
-    list_quote = []
-
-    print('Iniciando a raspagem de dados das citações...')
+    logger.info('Iniciando a raspagem de dados das citações...')
 
     while page_url:
-        full_url = url + page_url
-        print(f'Raspando a página: {full_url}')
+        full_url = urljoin(url, page_url)
+        logger.info('Raspando a página: %s', full_url)
 
-        response = requests.get(full_url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        regex = r'>(.*?)<'
+        try:
+            resp = requests.get(full_url, headers=headers, timeout=10)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            logger.error('Falha ao acessar %s: %s', full_url, e)
+            break
 
-        for i in soup.find_all('div', class_='quote'):
-            
-            # Separa Tags
-            list_tags = []
-            for t in i.find_all('a', class_='tag'):        
-                tag_text = str(re.findall(regex, str(t))[0]).strip("'[]")
-                #print(tag_text)
-                list_tags.append(tag_text)
-            
-            
-            list_quote.append({
-                'autor' : i.find('small', class_='author').text,        
-                'citacao' : i.find('span', class_='text').text,                
-                'tags': list_tags,
-                'pagina': full_url
+        soup = BeautifulSoup(resp.text, 'html.parser')
+
+        for q in soup.find_all('div', class_='quote'):
+            tags = [a.get_text(strip=True) for a in q.find_all('a', class_='tag')]
+            resultados.append({
+                'autor':   q.find('small', class_='author').get_text(strip=True),
+                'citacao': q.find('span', class_='text').get_text(strip=True),
+                'tags':    tags,
+                'pagina':  full_url
             })
 
-        # Encontrar o link para a próxima página
+        next_a = soup.select_one('li.next a')
+        page_url = next_a['href'] if next_a else None
+
+    return resultados
+
+
+def raspagem_page_author(url: str, delay: float = 0.8, timeout: int = 10) -> List[Dict[str, str]]:
+    '''
+    Raspagem de autores a partir de um site paginado.
+    Retorna lista de dicionários com chaves: 'author', 'data_nascimento', 'local_nascimento', 'descricao'.
+    '''
+    session = requests.Session()
+    session.headers.update({'User-Agent': 'Mozilla/5.0 (compatible; my-scraper/1.0)'})
+    author_data: List[Dict[str, str]] = []
+    visited_author_urls = set()
+    
+    next_path: Optional[str] = '/'
+
+    while next_path:
+        page_url = urljoin(url, next_path)
+        logger.info(f'Raspando página: {page_url}')
+        try:
+            resp = session.get(page_url, timeout=timeout)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            logger.exception(f'Falha ao acessar {page_url}: {e}')
+            break
+
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        
+        about_anchors = soup.find_all('a', string='(about)')
+                
+        for ah in about_anchors:            
+            href = ah.get('href')
+            if not href:
+                continue
+            author_url = urljoin(url, href)
+            if author_url in visited_author_urls:
+                continue
+            visited_author_urls.add(author_url)
+
+            logger.info(f'Raspando autor: {author_url}')
+            try:
+                r2 = session.get(author_url, timeout=timeout)
+                r2.raise_for_status()
+            except requests.RequestException as e:
+                logger.warning(f'Erro ao acessar página do autor {author_url}: {e}')
+                continue
+
+            soup_a = BeautifulSoup(r2.text, 'html.parser')
+            # uso de get_text(strip=True) e checagem de None
+            name_tag = soup_a.find('h3', class_='author-title')
+            date_tag = soup_a.find('span', class_='author-born-date')
+            place_tag = soup_a.find('span', class_='author-born-location')
+            desc_tag = soup_a.find('div', class_='author-description')
+
+            name = name_tag.get_text(strip=True) if name_tag else ''
+            born_date = date_tag.get_text(strip=True) if date_tag else ''
+            born_location = place_tag.get_text(strip=True) if place_tag else ''
+            descricao = desc_tag.get_text(' ', strip=True) if desc_tag else ''
+            # limpeza controlada (remove quebras de linha e aspas extras)
+            descricao = re.sub(r'["\u201c\u201d]', '', descricao)
+
+            author_data.append({
+                'author': name,
+                'data_nascimento': born_date,
+                'local_nascimento': born_location,
+                'descricao': descricao
+            })
+
+            time.sleep(delay)  # respeitar servidor
+
+        # Pegar link 'next'
         next_li = soup.select_one('li.next a')
-        
-        if next_li:
-            page_url = next_li['href']
+        if next_li and next_li.get('href'):
+            next_path = next_li['href']
         else:
-            page_url = None # Sair do loop quando não houver mais páginas
-   
-    return list_quote
+            next_path = None
 
+        time.sleep(delay)
 
-def raspagem_page_author(url: str):
-    
-    html = urlopen(url=url) 
-    
-    # Instanciar BeautifulSoup 
-    soup = BeautifulSoup(html, 'html.parser')
-    
-    page_url = '/'    
-    author_data = []     
-
-    print('Iniciando a raspagem de dados das paginas sobre os Autores...')
-    
-    while page_url:
-
-        full_url = url + page_url
-        print(f'Raspando a página: {full_url}')
-
-        response = requests.get(full_url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Encontra a primeira citação para extrair o link do autor
-        about_href = soup.find_all('a', string='(about)')
-
-        if about_href:
-            # Encontra o link 'about' do autor dentro da citação
-            regex = r'<a href="(.*?)"'
-            author_link = []
-
-            for ah in about_href:        
-                author_link.append(re.findall(regex, str(ah))[0])            
-            
-            for author_page in set(author_link):                
-                
-                full_url_ator = url + author_page                
-                print(f'Raspando a página: {full_url_ator}')
-                
-                response = requests.get(full_url_ator)
-                soup_ator = BeautifulSoup(response.text, 'html.parser')
-                
-                descricao = str(soup_ator.find('div', class_="author-description").text).strip()
-                descricao = descricao.replace(',', '')
-                descricao = descricao.replace('.', '')
-                descricao = descricao.replace('"', '')
-                
-                author_data.append(
-                    {
-                        'author': soup_ator.find('h3', class_="author-title").text,
-                        'data nascimento': soup_ator.find('span', class_="author-born-date").text,
-                        'local nascimento': str(soup_ator.find('span', class_="author-born-location").text).replace('"',''),
-                        'descricao': descricao
-                    }
-                )                    
-        
-        # Tentar encontrar o link para a próxima página
-        next_li = soup.select_one('li.next a')
-        
-        if next_li:
-            page_url = next_li['href']
-        else:
-            page_url = None # Sair do loop se não houver mais páginas
-    
     return author_data
 
 
 def cria_file_csv(dados, nome_file):
   
-# Obter os nomes dos campos (chaves dos dicionários)
-  chaves = dados[0].keys()
+    # Obter os nomes dos campos (chaves dos dicionários)
+    chaves = dados[0].keys()
 
-  with open(nome_file, 'w', newline='') as file_csv:
-    escritor = csv.DictWriter(file_csv, fieldnames=chaves)
+    with open(nome_file, 'w', newline='') as file_csv:
+        escritor = csv.DictWriter(file_csv, fieldnames=chaves)
 
-    # Escrever o cabeçalho
-    escritor.writeheader()
+        # Escrever o cabeçalho
+        escritor.writeheader()
 
-    # Escrever os dados
-    escritor.writerows(dados)
+        # Escrever os dados
+        escritor.writerows(dados)
 
-
-def remove_linhas_duplicadas():
-    '''
-    Lê o arquivo author.csv com a informações sobre autores que se repetem.
-    Remove as linhas duplicadas utilizando pandas.
-    Salva em outro arquivo sem as linhas duplicadas.
-    '''
-    
-    import pandas as pd
-    
-    df = pd.read_csv('../documents/author.csv')    
-
-    df_sem_duplicatas = df.drop_duplicates(subset=['autor'])
-    
-    df_sem_duplicatas.to_csv('../documents/author_sem_duplicatas.csv', index=False)
-
-    print("Linhas duplicadas removidas e guardadas em 'author_sem_duplicatas.csv'")
-    
 
 def main():
     try:
@@ -160,13 +158,13 @@ def main():
         cria_file_csv(raspagem_page_author(url=url), file_author)
 
         file = '../documents/dados.csv'
-        cria_file_csv(raspagem_quotes_toscrape(url=url), file)        
+        cria_file_csv(raspagem_quotes_toscrape(url=url), file)
 
         print('-' * 30)
         print(f'Raspagem concluída!')    
     except Exception as e:
-        print(f"Erro: {e}")
+        print(f'Erro: {e}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

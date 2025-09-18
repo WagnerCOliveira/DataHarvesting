@@ -1,4 +1,5 @@
 import csv
+import logging
 import os
 import getpass
 
@@ -12,6 +13,16 @@ from langchain.schema.output_parser import StrOutputParser
 from langchain.docstore.document import Document
 from langchain_community.document_loaders import PyPDFLoader
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('agent.log'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)    
 
 if not os.getenv('GOOGLE_API_KEY'):
     os.environ['GOOGLE_API_KEY'] = getpass.getpass('Enter your Google API key: ')
@@ -21,7 +32,7 @@ def processar_csv_author_preparar_chunks(file_path_csv):
     '''
     Converte os dados brutos de arquivos csv em Documentos do LangChain e os divide em chunks.
     '''
-    print('Iniciando processamento e chunking dos documentos...')    
+    logger.info('Iniciando processamento e chunking dos documentos...')    
     documentos_langchain = []
 
     with open(file_path_csv, 'r', newline='', encoding='utf-8') as file_csv:
@@ -49,15 +60,16 @@ def processar_csv_author_preparar_chunks(file_path_csv):
     )
     chunks = text_splitter.split_documents(documentos_langchain)
     
-    print(f'{len(chunks)} chunks criados a partir de {len(documentos_langchain)} documentos.')
+    logger.info(f'{len(chunks)} chunks criados a partir de {len(documentos_langchain)} documentos.')
     return chunks
+
 
 # --- CRIAÇÃO DA BASE DE CONHECIMENTO VETORIAL ---
 def criar_base_vetorial(chunks):
     '''
     Cria a base de dados de vetores usando ChromaDB e embeddings do Gemini AI.
     '''
-    print('Criando a base de dados vetorial (Vector Store)...')
+    logger.info('Criando a base de dados vetorial (Vector Store)...')
     # Modelo de Embeddings: Transforma texto em vetores numéricos
     embeddings = GoogleGenerativeAIEmbeddings(model='models/text-embedding-004')
 
@@ -67,18 +79,18 @@ def criar_base_vetorial(chunks):
         documents=chunks,
         embedding=embeddings
     )
-    print('Base de dados vetorial criada com sucesso!')
+    logger.info('Base de dados vetorial criada com sucesso!')
     return vectorstore
 
-# --- LÓGICA PRINCIPAL DE ORQUESTRAÇÃO ---
 
+# --- LÓGICA PRINCIPAL DE ORQUESTRAÇÃO ---
 # Definindo o caminho do arquivo CSV
 file_author_csv = './documents/author_sem_duplicatas.csv'
 chunks_processados_csv_author = processar_csv_author_preparar_chunks(file_author_csv)
 vectorstore = criar_base_vetorial(chunks_processados_csv_author)
 
 # --- CONSTRUÇÃO DO PIPELINE DE RAG ---
-print('Configurando o pipeline de RAG...')
+logger.info('Configurando o pipeline de RAG...')
 
 # O Retriever é responsável por buscar os chunks relevantes na base vetorial
 retriever = vectorstore.as_retriever(search_kwargs={'k': 3}) # 'k' é o número de documentos a retornar
@@ -120,4 +132,4 @@ cadeia_rag = (
     | StrOutputParser()
 )
 
-print('Pipeline de RAG pronto!')
+logger.info('Pipeline de RAG pronto!')
