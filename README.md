@@ -5,7 +5,9 @@ Tabela de conteúdos
    * [Tecnologias](#🛠-tecnologias-utilizadas)
    * [Criação Virtualenv](#criação-virtualenv)
    * [Instalação Pacotes](#instalação-de-pacotes)
-   * [Acessando Virtualenv](#acessando-virtualenv---wsl-linux)   
+   * [Acessando Virtualenv](#acessando-virtualenv---wsl-linux)
+   * [Componentes](#componentes)
+     * [Coletor](#coletor)
    * [Referências](#referências)
    * [Contribuição](#contribuidor)
    * [Autor](#autor)
@@ -21,8 +23,7 @@ As seguintes ferramentas foram usadas na construção do projeto:
 
 
 
-Criação Virtualenv
----
+### Criação Virtualenv
 
 
 ~~~bash
@@ -30,17 +31,15 @@ python3 -m venv .venv
 ~~~
 
 
-Acessando Virtualenv - WSL, Linux
----
+### Acessando Virtualenv - WSL, Linux
+
 
 
 ~~~bash
 source .venv/bin/activate
 ~~~
 
-
-Acessando Virtualenv - Windows
----
+### Acessando Virtualenv - Windows
 
 
 ~~~bash
@@ -48,8 +47,7 @@ Acessando Virtualenv - Windows
 ~~~
 
 
-Instalação de Pacotes
----
+### Instalação de Pacotes
 
 
 ~~~bash
@@ -57,25 +55,33 @@ python -m pip install -r requirements.txt
 ~~~
 
 
+Componentes
+===
 
-### Referências
----
+### Coletor
+
+Este componente é responsavel por gerar arquivos **.csv** onde coletam dados de Autor, Citações, Tgas, links das páginas, e descrição do autor em páginas about(sobre), percorendo todas as páginas do site **http://quotes.toscrape.com** para fins de estudo, pode consultar a documentação deste componente neste [link](https://github.com/WagnerCOliveira/DataHarvesting/blob/main/src/docs/COLETOR.md)
+
+### Agent
+
+Referências
+===
 
 - [Python Documentação](https://docs.python.org/pt-br/3/)
 - [Pandas Documentação](https://pandas.pydata.org/docs/)
 
 
-### Contribuidor
----
+Contribuidor
+===
 
 - Wagner da Costa Oliveira
 
-### Autor
----
+Autor
+===
 
 - Wagner da Costa Oliveira
 
-### Licença
----
+Licença
+===
 
 - [GNU General Public License (GPL)](https://www.gnu.org/licenses/gpl-3.0.html)
