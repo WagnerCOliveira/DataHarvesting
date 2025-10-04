@@ -3,8 +3,7 @@
 <!--ts-->   
    * [Função - raspagem_quotes_toscrape()](#scraper-de-citações--raspagem_quotes_toscrape)
    * [Função - raspagem_page_author()](#raspador-de-autores--raspagem_page_author)
-   * [Função - cria_file_csv()](#cria_file_csv--exportador-csv)
-   * [Função - remove_linhas_duplicadas()](#remoção-de-linhas-duplicadas--remove_linhas_duplicadas)
+   * [Função - cria_file_csv()](#cria_file_csv--exportador-csv)   
 <!--te-->
 
 
