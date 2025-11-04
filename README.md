@@ -7,7 +7,7 @@ Tabela de conteúdos
    * [Instalação Pacotes](#instalação-de-pacotes)
    * [Acessando Virtualenv](#acessando-virtualenv---wsl-linux)
    * [Componentes](#componentes)
-     * [Api Anilise de Autores](#api-analise-de-autores)     
+     * [Api Analise de Autores](#api-analise-de-autores)     
      * [Dashboard](#dash)
    * [Referências](#referências)
    * [Contribuição](#contribuidor)
@@ -71,11 +71,11 @@ Contem três modulos responsaveis por coletar os dados utilizando RPA buscando e
 
   * Este código implementa um sistema de Geração Aumentada por Recuperação (RAG - Retrieval-Augmented Generation) utilizando o framework LangChain e a API do Google Gemini.
 
-  * O objetivo principal do agent é responder perguntas sobre autores com base em um conjunto de dados fornecido em um arquivo CSV. Ele faz isso processando o CSV, criando uma base de conhecimento vetorial e, em seguida, usando um modelo de linguagem grande (LLM) para formular respostas precisas com base nos trechos de dados recuperados (chunks).
+  * O objetivo principal do agent é responder perguntas sobre autores com base em um conjunto de dados fornecido em um arquivo CSV. Ele faz isso processando o CSV, criando uma base de conhecimento vetorial e, em seguida, usando um modelo de linguagem grande (LLM) para formular respostas precisas com base nos trechos de dados recuperados (chunks). Pode consultar a documentação neste [link](https://github.com/WagnerCOliveira/DataHarvesting/blob/main/src/docs/AGENT.md)
 
 3. Fastapi APP
 
-  * Um código Python que implementa uma API para um sistema de Geração Aumentada por Recuperação (RAG - Retrieval-Augmented Generation), focado na análise de autores.
+  * Um código Python que implementa uma API para um sistema de Geração Aumentada por Recuperação (RAG - Retrieval-Augmented Generation), focado na análise de autores. Pode consultar a documentação neste [link](https://github.com/WagnerCOliveira/DataHarvesting/blob/main/src/docs/APP_FASTAPI.md)
 
 
 
@@ -89,10 +89,14 @@ Com esses três arquivos, você tem uma visão completa de como o dashboard func
 
     * Coluna da Esquerda (Pequena): Para seleção de um autor.
     * Coluna da Direita (Grande): Para exibir informações e gráficos relacionados ao autor selecionado.
+    
+    Documentação neste [link](https://github.com/WagnerCOliveira/DataHarvesting/blob/main/src/docs/DASH_LAYOUT.md)
 
 2. Callbacks: Processa dados e atualiza a interface.
 
   * O objetivo principal é: quando um autor é selecionado no dropdown (seletor), o código filtra os dados, calcula as estatísticas e gera os componentes visuais de saída (total de citações, nuvem de tags e lista detalhada de citações).Trechos-chave do Processamento:
+
+Documentação neste [link](https://github.com/WagnerCOliveira/DataHarvesting/blob/main/src/docs/DASH_CALLBAKS.md)
 
 3. App (Este arquivo): Inicializa e executa tudo.
 
@@ -100,6 +104,8 @@ Com esses três arquivos, você tem uma visão completa de como o dashboard func
   * Importar o layout visual (layout_children) e a lógica de interatividade (funções de callback).
   * Definir o layout final do aplicativo, envolvendo-o com o tema visual Mantine.
   * Executar o servidor web para que o dashboard possa ser acessado pelo navegador.
+
+  Documentação neste [link](https://github.com/WagnerCOliveira/DataHarvesting/blob/main/src/docs/DASH_APP.md)
 
 
 Referências
