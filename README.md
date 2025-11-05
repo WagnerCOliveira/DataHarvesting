@@ -1,3 +1,17 @@
+**DataHarvesting** 
+---
+
+É um projeto desenvolvido em **Python** que integra coleta de dados, inteligência artificial e visualização interativa em uma solução completa de análise e geração de conhecimento.
+
+O sistema é composto por quatro módulos principais:
+
+* **Coletor (Web Scraping/RPA):** automatiza a extração de informações de autores, citações e tags do site *quotes.toscrape.com*, salvando os dados em formato CSV.
+* **Agente (IA com RAG):** utiliza o **LangChain** e a **API do Google Gemini** para criar uma base vetorial e responder perguntas contextuais sobre os autores, combinando técnicas de embeddings e busca semântica.
+* **API (FastAPI):** expõe endpoints REST para interação com o agente e integração com outros sistemas.
+* **Dashboard (Dash):** oferece uma interface interativa para explorar os dados e insights extraídos, com filtros, visualizações e estatísticas.
+
+O projeto segue boas práticas de desenvolvimento, como modularização, uso de ambiente virtual, documentação detalhada e licença **GPL**. Ele demonstra competências em **engenharia de dados, IA aplicada, arquitetura de software e visualização interativa**, unindo múltiplas tecnologias em um pipeline coeso.
+
 
 Tabela de conteúdos
 ---
@@ -27,33 +41,33 @@ As seguintes ferramentas foram usadas na construção do projeto:
 ### Criação Virtualenv
 
 
-~~~bash
+```bash
 python3 -m venv .venv
-~~~
+```
 
 
 ### Acessando Virtualenv - WSL, Linux
 
 
 
-~~~bash
+```bash
 source .venv/bin/activate
-~~~
+```
 
 ### Acessando Virtualenv - Windows
 
 
-~~~bash
+```bash
 .venv/Scripts/activate.bat
-~~~
+```
 
 
 ### Instalação de Pacotes
 
 
-~~~bash
+```bash
 python -m pip install -r requirements.txt
-~~~
+```
 
 
 Componentes
@@ -77,9 +91,20 @@ Contem três modulos responsaveis por coletar os dados utilizando RPA buscando e
 
   * Um código Python que implementa uma API para um sistema de Geração Aumentada por Recuperação (RAG - Retrieval-Augmented Generation), focado na análise de autores. Pode consultar a documentação neste [link](https://github.com/WagnerCOliveira/DataHarvesting/blob/main/src/docs/APP_FASTAPI.md)
 
+4. Inicando Api local.
 
+```bash
+
+$ cd src/
+$ python app.py
+
+```
+
+
+![API (FastAPI)](imagens/2025-08-28_09-08.png)
 
 ### Dash
+
 
 Com esses três arquivos, você tem uma visão completa de como o dashboard funciona, que proporciona uma visualização das citações extraidas pelo componente coletor.
 
@@ -108,11 +133,24 @@ Documentação neste [link](https://github.com/WagnerCOliveira/DataHarvesting/bl
   Documentação neste [link](https://github.com/WagnerCOliveira/DataHarvesting/blob/main/src/docs/DASH_APP.md)
 
 
+4. Iniciando Dashboard local
+
+```bash
+
+$ cd src/dash
+$ python app.py
+
+```
+
+![API (FastAPI)](imagens/2025-11-04_18-30.png)
+
+
 Referências
 ===
 
 - [Python Documentação](https://docs.python.org/pt-br/3/)
 - [Pandas Documentação](https://pandas.pydata.org/docs/)
+- [Dash Documentação](https://dash.plotly.com/)
 
 
 Contribuidor
